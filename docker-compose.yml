@@ -2,7 +2,7 @@
 # Hosts frontend + backend + Postgres.
 # Public exposure (aubesonore.fr / api / radio) is handled by the host-level
 # cloudflared systemd service, not by this compose.
-# AzuraCast runs from its own compose (~/azuracast) and is reached via the host gateway.
+# AzuraCast runs from its own compose (~/radio/azuracast) and is reached via the host gateway.
 
 name: aubesonore
 

@@ -3,7 +3,7 @@
 # aubesonore-deploy.timer; safe to run by hand.
 set -euo pipefail
 
-REPO_DIR="${REPO_DIR:-$HOME/AubeSonore}"
+REPO_DIR="${REPO_DIR:-$HOME/radio/aubesonore}"
 cd "$REPO_DIR"
 
 current=$(git rev-parse HEAD)

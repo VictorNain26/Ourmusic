@@ -97,7 +97,7 @@ Toute la stack est auto-hébergée sur le même serveur et exposée via Cloudfla
 Déploiement manuel depuis le checkout du serveur :
 
 ```bash
-cd /home/victormoi/AubeSonore
+cd /home/victormoi/radio/aubesonore
 git pull
 docker compose up -d --build
 ```
