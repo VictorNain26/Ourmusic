@@ -3,7 +3,7 @@
 # aubesonore-deploy.timer; safe to run by hand.
 set -euo pipefail
 
-REPO_DIR="${REPO_DIR:-$HOME/AubeSonore}"
+REPO_DIR="${REPO_DIR:-$HOME/radio/aubesonore}"
 cd "$REPO_DIR"
 
 current=$(git rev-parse HEAD)
@@ -18,8 +18,23 @@ if [ "$current" = "$target" ]; then
   exit 0
 fi
 
-echo "deploying ${current:0:8} -> ${target:0:8}"
 git fetch --quiet origin master
+
+# Comparer deux SHA ne suffit pas : dès que HEAD porte un commit local non
+# poussé, il ne peut plus jamais égaler origin/master. Le script se croyait
+# alors en retard à chaque passage, `git merge --ff-only` répondait "Already
+# up to date." avec un code 0 sans bouger HEAD, et `docker compose up --build`
+# repartait — toutes les 2,5 minutes, indéfiniment. Observé le 2026-08-19 :
+# 103 déploiements inutiles en trois heures.
+#
+# La bonne question n'est pas "HEAD vaut-il origin/master ?" mais "origin/master
+# est-il déjà contenu dans HEAD ?".
+if git merge-base --is-ancestor "$target" HEAD; then
+  echo "origin/master (${target:0:8}) déjà contenu dans HEAD (${current:0:8}) — rien à promouvoir"
+  exit 0
+fi
+
+echo "deploying ${current:0:8} -> ${target:0:8}"
 
 # drizzle push is manual and can drop columns, so a schema change must not ride
 # in on an unattended deploy: the new code would boot against the old tables.

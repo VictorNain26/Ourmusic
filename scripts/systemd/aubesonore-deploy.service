@@ -5,5 +5,5 @@ Description=Deploy AubeSonore when origin/master moves
 Type=oneshot
 # The box is a shared homelab; a rebuild must not starve the other containers.
 Nice=10
-ExecStart=%h/AubeSonore/scripts/deploy.sh
+ExecStart=%h/radio/aubesonore/scripts/deploy.sh
 TimeoutStartSec=1800

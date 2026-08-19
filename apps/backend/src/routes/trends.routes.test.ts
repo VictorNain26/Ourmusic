@@ -1,21 +1,46 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
+import * as realSchema from '../db/schema';
 import { __resetRateLimits } from '../lib/rateLimit';
-import type { TrendsResult } from '../services/trendsService';
+import type { TrendEntry, TrendsResult } from '../services/trendsService';
 
-const payload: TrendsResult = {
-  week: [{ title: 'Week Hit', artist: 'Artist A', artworkUrl: null, likes: 3 }],
-  allTime: [{ title: 'All-Time Hit', artist: 'Artist B', artworkUrl: null, likes: 42 }],
+const weekRows: TrendEntry[] = [
+  { title: 'Week Hit', artist: 'Artist A', artworkUrl: null, likes: 3 },
+];
+const allTimeRows: TrendEntry[] = [
+  { title: 'All-Time Hit', artist: 'Artist B', artworkUrl: null, likes: 42 },
+];
+const payload: TrendsResult = { week: weekRows, allTime: allTimeRows };
+
+// Stub the database boundary, not `../services/trendsService`: Bun keeps module
+// mocks for the whole run even under `--isolate`, so a partial mock of the
+// service would strip `trendsCache` from every test file loaded afterwards.
+const fakeDb = {
+  select: () => {
+    let filtered = false;
+    const builder = {
+      from: () => builder,
+      $dynamic: () => builder,
+      where: () => {
+        filtered = true;
+        return builder;
+      },
+      groupBy: () => builder,
+      orderBy: () => builder,
+      limit: (): Promise<TrendEntry[]> => Promise.resolve(filtered ? weekRows : allTimeRows),
+    };
+    return builder;
+  },
 };
 
-const getTrendsMock = mock((): Promise<TrendsResult> => Promise.resolve(payload));
-void mock.module('../services/trendsService', () => ({ getTrends: getTrendsMock }));
+void mock.module('../db/index', () => ({ db: fakeDb, schema: realSchema }));
 
 const { trendsRoutes } = await import('./trends.routes');
+const { trendsCache } = await import('../services/trendsService');
 
 beforeEach(() => {
   __resetRateLimits();
-  getTrendsMock.mockClear();
+  trendsCache.dispose();
 });
 
 describe('GET /api/trends', () => {

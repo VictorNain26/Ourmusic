@@ -76,3 +76,7 @@ apps/frontend/stats.html
 
 # Subagent-driven-development scratch (progress ledger, task briefs/reports)
 .superpowers/
+
+# Sauvegardes locales de .env (jamais versionnées)
+.env.bak*
+.env.pre-*
